@@ -70,7 +70,10 @@ import BraintreeDataCollector
     /// Used to determine whether or not to render the WAS popup.
     /// If the experiement is enabled, set the `prefersEphemeralWebBrowserSession` flag to true.
     private var experiment: String?
-    
+
+    /// Used to distinguish between merchant-specified user actions (e.g., "payNow", "continue") and SDK defaults for analytics and migration tracking.
+    private var merchantPassedUserAction: String?
+
     /// Used for analytics purposes, to determine if browser-presentation event is associated with a locally cached, or remotely fetched `BTConfiguration`
     private var isConfigFromCache: Bool?
     
@@ -174,6 +177,7 @@ import BraintreeDataCollector
         completion: @escaping (BTPayPalAccountNonce?, Error?) -> Void
     ) {
         isVaultRequest = false
+        merchantPassedUserAction = request.userAction.AnalyticsValue
         contextType = "EC-TOKEN"
         tokenize(request: request, completion: completion)
     }
@@ -220,6 +224,7 @@ import BraintreeDataCollector
             correlationID: contextID.flatMap { clientMetadataIDs[$0] },
             didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
             didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
+            merchantPassedUserAction: merchantPassedUserAction,
             isVaultRequest: isVaultRequest,
             shopperSessionID: payPalRequest?.shopperSessionID
         )
@@ -304,6 +309,9 @@ import BraintreeDataCollector
         /// in cases where the customer abandons the flow without a return URL or failure
         /// returned to the SDK then reopens the merchant app and attempts the PayPal flow again
         hasOpenedURL = false
+
+        // reset any previous userAction to prevent stale analytics after app resumes
+        merchantPassedUserAction = nil
     }
     
     func handlePayPalRequest(
@@ -329,6 +337,7 @@ import BraintreeDataCollector
                 contextType: contextType,
                 didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
                 didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
+                merchantPassedUserAction: merchantPassedUserAction,
                 isVaultRequest: isVaultRequest
             )
             BTPayPalClient.payPalClient = self
@@ -346,6 +355,7 @@ import BraintreeDataCollector
                 contextType: contextType,
                 didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
                 didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
+                merchantPassedUserAction: merchantPassedUserAction,
                 isVaultRequest: isVaultRequest
             )
             notifyFailure(with: BTPayPalError.appSwitchFailed, completion: completion)
@@ -390,6 +400,7 @@ import BraintreeDataCollector
             applicationState: UIApplication.shared.applicationStateString,
             contextType: contextType,
             didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
+            merchantPassedUserAction: merchantPassedUserAction,
             isVaultRequest: isVaultRequest,
             shopperSessionID: payPalRequest?.shopperSessionID
         )
@@ -483,6 +494,7 @@ import BraintreeDataCollector
                 contextType: contextType,
                 didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
                 didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
+                merchantPassedUserAction: merchantPassedUserAction,
                 isVaultRequest: isVaultRequest,
                 shopperSessionID: payPalRequest?.shopperSessionID
             )
@@ -501,6 +513,7 @@ import BraintreeDataCollector
             contextType: contextType,
             didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
             didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
+            merchantPassedUserAction: merchantPassedUserAction,
             isVaultRequest: isVaultRequest,
             shopperSessionID: payPalRequest?.shopperSessionID
         )
@@ -539,6 +552,7 @@ import BraintreeDataCollector
             contextType: contextType,
             didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
             didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
+            merchantPassedUserAction: merchantPassedUserAction,
             isVaultRequest: isVaultRequest,
             shopperSessionID: payPalRequest?.shopperSessionID
         )
@@ -589,6 +603,7 @@ import BraintreeDataCollector
                     contextType: contextType,
                     didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
                     didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
+                    merchantPassedUserAction: merchantPassedUserAction,
                     isConfigFromCache: isConfigFromCache,
                     isVaultRequest: isVaultRequest,
                     shopperSessionID: payPalRequest?.shopperSessionID
@@ -602,6 +617,7 @@ import BraintreeDataCollector
                     contextType: contextType,
                     didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
                     didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
+                    merchantPassedUserAction: merchantPassedUserAction,
                     isVaultRequest: isVaultRequest,
                     shopperSessionID: payPalRequest?.shopperSessionID
                 )
@@ -619,6 +635,7 @@ import BraintreeDataCollector
                     contextType: contextType,
                     didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
                     didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
+                    merchantPassedUserAction: merchantPassedUserAction,
                     isVaultRequest: isVaultRequest
                 )
             }
@@ -638,6 +655,7 @@ import BraintreeDataCollector
                 contextType: contextType,
                 didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
                 didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
+                merchantPassedUserAction: merchantPassedUserAction,
                 isVaultRequest: isVaultRequest,
                 shopperSessionID: payPalRequest?.shopperSessionID
             )
@@ -674,9 +692,13 @@ import BraintreeDataCollector
             correlationID: contextID.flatMap { clientMetadataIDs[$0] },
             didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
             didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
+            merchantPassedUserAction: merchantPassedUserAction,
             isVaultRequest: isVaultRequest,
             shopperSessionID: payPalRequest?.shopperSessionID
         )
+
+        // Reset userAction after success to avoid stale analytics in future transactions
+        merchantPassedUserAction = nil
         completion(result, nil)
     }
 
@@ -690,9 +712,13 @@ import BraintreeDataCollector
             didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
             didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
             errorDescription: error.localizedDescription,
+            merchantPassedUserAction: merchantPassedUserAction,
             isVaultRequest: isVaultRequest,
             shopperSessionID: payPalRequest?.shopperSessionID
         )
+
+        // Reset userAction after failure to avoid stale analytics in future transactions
+        merchantPassedUserAction = nil
         completion(nil, error)
     }
 
@@ -704,9 +730,13 @@ import BraintreeDataCollector
             correlationID: contextID.flatMap { clientMetadataIDs[$0] },
             didEnablePayPalAppSwitch: payPalRequest?.enablePayPalAppSwitch,
             didPayPalServerAttemptAppSwitch: didPayPalServerAttemptAppSwitch,
+            merchantPassedUserAction: merchantPassedUserAction,
             isVaultRequest: isVaultRequest,
             shopperSessionID: payPalRequest?.shopperSessionID
         )
+
+        // Reset userAction after cancel to avoid carrying over to future transactions
+        merchantPassedUserAction = nil
         completion(nil, BTPayPalError.canceled)
     }
 }
