@@ -1,5 +1,12 @@
 # Braintree iOS SDK Release Notes
 
+## 6.39.0 (??)
+* BraintreePayPal
+  * Add `userAction` property to `BTPayPalRequest` and refactor `BTPayPalRequestUserAction` enum:
+    * Deprecate `.none`, add `.continue` and `.unknown` cases.
+    * Update initializers to support explicit merchant intent.
+  * Instrument analytics to include new `merchantPassedUserAction` field in all PayPal checkout events.
+
 ## 6.38.0 (2025-09-09)
 * BraintreeShopperInsights (BETA)
   * Add `createCustomerSession(request:)` to `BTShopperInsightsClientV2`
