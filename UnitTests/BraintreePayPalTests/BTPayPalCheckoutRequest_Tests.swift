@@ -64,9 +64,15 @@ class BTPayPalCheckoutRequest_Tests: XCTestCase {
         XCTAssertEqual(request.userAction.stringValue, "")
     }
 
-    func testUserActionAsString_whenUserActionIsDefault_returnsEmptyString() {
+    func testUserActionAsString_whenUserActionIsContinue_returnsEmptyString() {
         let request = BTPayPalCheckoutRequest(amount: "1")
-        request.userAction = .none
+        request.userAction = .continue
+        XCTAssertEqual(request.userAction.stringValue, "")
+    }
+
+    func testUserActionAsString_whenUserActionIsUnknown_returnsEmptyString() {
+        let request = BTPayPalCheckoutRequest(amount: "1")
+        request.userAction = .unknown
         XCTAssertEqual(request.userAction.stringValue, "")
     }
 

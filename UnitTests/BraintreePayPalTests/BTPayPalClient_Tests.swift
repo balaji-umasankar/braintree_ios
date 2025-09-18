@@ -164,7 +164,22 @@ class BTPayPalClient_Tests: XCTestCase {
         ])
 
         let request = BTPayPalCheckoutRequest(amount: "1")
-        request.userAction = BTPayPalRequestUserAction.none
+        request.userAction = BTPayPalRequestUserAction.unknown
+
+        payPalClient.tokenize(request) { _, _ in }
+
+        XCTAssertEqual("https://www.paypal.com/checkout?EC-Token=EC-Random-Value", payPalClient.approvalURL?.absoluteString)
+    }
+
+    func testTokenizePayPalAccount_whenUserActionIsSetToContinue_approvalUrlIsNotModified() {
+        mockAPIClient.cannedResponseBody = BTJSON(value: [
+            "paymentResource": [
+                "redirectUrl": "https://www.paypal.com/checkout?EC-Token=EC-Random-Value"
+            ]
+        ])
+
+        let request = BTPayPalCheckoutRequest(amount: "1")
+        request.userAction = BTPayPalRequestUserAction.continue
 
         payPalClient.tokenize(request) { _, _ in }
 
