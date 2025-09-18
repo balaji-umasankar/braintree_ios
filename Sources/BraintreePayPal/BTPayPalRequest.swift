@@ -105,6 +105,9 @@ import BraintreeCore
     /// Optional: The shopper session ID returned from your shopper insights server SDK integration.
     public var shopperSessionID: String?
 
+    /// Optional: Changes the call-to-action in the PayPal flow. Defaults to `.unknown`.
+    public var userAction: BTPayPalRequestUserAction
+
     // MARK: - Internal Properties
     
     /// Optional: Used to determine if the customer will use the PayPal app switch flow. Defaults to `false`.
@@ -133,7 +136,8 @@ import BraintreeCore
         userPhoneNumber: BTPayPalPhoneNumber? = nil,
         userAuthenticationEmail: String? = nil,
         enablePayPalAppSwitch: Bool = false,
-        shopperSessionID: String? = nil
+        shopperSessionID: String? = nil,
+        userAction: BTPayPalRequestUserAction = .unknown
     ) {
         self.hermesPath = hermesPath
         self.paymentType = paymentType
@@ -151,6 +155,7 @@ import BraintreeCore
         self.userAuthenticationEmail = userAuthenticationEmail
         self.enablePayPalAppSwitch = enablePayPalAppSwitch
         self.shopperSessionID = shopperSessionID
+        self.userAction = userAction
     }
 
     // MARK: Public Methods
