@@ -86,9 +86,6 @@ import BraintreeCore
     /// Optional: Payment intent. Defaults to `.authorize`. Only applies to PayPal Checkout.
     public var intent: BTPayPalRequestIntent
 
-    /// Optional: Changes the call-to-action in the PayPal Checkout flow. Defaults to `.unknown`.
-    public var userAction: BTPayPalRequestUserAction
-
     /// Optional: Offers PayPal Pay Later if the customer qualifies. Defaults to `false`. Only available with PayPal Checkout.
     public var offerPayLater: Bool
 
@@ -173,16 +170,16 @@ import BraintreeCore
     ) {
         self.amount = amount
         self.intent = intent
-        self.userAction = userAction
         self.offerPayLater = offerPayLater
         self.currencyCode = currencyCode
         self.requestBillingAgreement = requestBillingAgreement
         self.shippingCallbackURL = shippingCallbackURL
-        
+
         super.init(
             hermesPath: "v1/paypal_hermes/create_payment_resource",
             paymentType: .checkout,
-            userAuthenticationEmail: userAuthenticationEmail
+            userAuthenticationEmail: userAuthenticationEmail,
+            userAction: userAction
         )
     }
 
