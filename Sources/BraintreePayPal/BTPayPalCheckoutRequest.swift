@@ -39,16 +39,35 @@ import BraintreeCore
 ///  Setting the BTPayPalRequest's userAction to `.payNow` changes the button text to "Pay Now", conveying to
 ///  the user that billing will take place immediately.
 @objc public enum BTPayPalRequestUserAction: Int {
-    /// Default
+    @available(*, deprecated, message: "Use a specific user action like `.payNow` or `.continue`. `.none` will be removed;")
     case none
 
     /// Pay Now
     case payNow
 
+    /// Continue
+    case `continue`
+    
+    /// Reserved for unknown or unsupported values.
+    case unknown
+
     var stringValue: String {
         switch self {
         case .payNow:
             return "commit"
+        default:
+            return ""
+        }
+    }
+
+    var analyticsValue: String {
+        switch self {
+        case .payNow:
+            return "pay"
+        case .continue:
+            return "continue"
+        case .unknown:
+            return "none"
         default:
             return ""
         }
@@ -67,7 +86,7 @@ import BraintreeCore
     /// Optional: Payment intent. Defaults to `.authorize`. Only applies to PayPal Checkout.
     public var intent: BTPayPalRequestIntent
 
-    /// Optional: Changes the call-to-action in the PayPal Checkout flow. Defaults to `.none`.
+    /// Optional: Changes the call-to-action in the PayPal Checkout flow. Defaults to `.unknown`.
     public var userAction: BTPayPalRequestUserAction
 
     /// Optional: Offers PayPal Pay Later if the customer qualifies. Defaults to `false`. Only available with PayPal Checkout.
@@ -97,7 +116,7 @@ import BraintreeCore
     ///   - enablePayPalAppSwitch: Required: Used to determine if the customer will use the PayPal app switch flow.
     ///   - amount: Required: Used for a one-time payment. Amount must be greater than or equal to zero, may optionally contain exactly 2 decimal places separated by '.' and is limited to 7 digits before the decimal point.
     ///   - intent: Optional: Payment intent. Defaults to `.authorize`. Only applies to PayPal Checkout.
-    ///   - userAction: Optional: Changes the call-to-action in the PayPal Checkout flow. Defaults to `.none`.
+    ///   - userAction: Optional: Changes the call-to-action in the PayPal Checkout flow. Defaults to `.unknown`.
     ///   - offerPayLater: Optional: Offers PayPal Pay Later if the customer qualifies. Defaults to `false`. Only available with PayPal Checkout.
     ///   - currencyCode: Optional: A three-character ISO-4217 ISO currency code to use for the transaction. Defaults to merchant currency code if not set.
     ///   See https://developer.paypal.com/docs/api/reference/currency-codes/ for a list of supported currency codes.
@@ -110,7 +129,7 @@ import BraintreeCore
         enablePayPalAppSwitch: Bool,
         amount: String,
         intent: BTPayPalRequestIntent = .authorize,
-        userAction: BTPayPalRequestUserAction = .none,
+        userAction: BTPayPalRequestUserAction = .unknown,
         offerPayLater: Bool = false,
         currencyCode: String? = nil,
         requestBillingAgreement: Bool = false,
@@ -133,7 +152,7 @@ import BraintreeCore
     ///   - amount: Used for a one-time payment. Amount must be greater than or equal to zero, may optionally contain exactly 2 decimal places separated by '.'
     ///   - intent: Optional: Payment intent. Defaults to `.authorize`. Only applies to PayPal Checkout.
     ///   and is limited to 7 digits before the decimal point.
-    ///   - userAction: Optional: Changes the call-to-action in the PayPal Checkout flow. Defaults to `.none`.
+    ///   - userAction: Optional: Changes the call-to-action in the PayPal Checkout flow. Defaults to `.unknown`.
     ///   - offerPayLater: Optional: Offers PayPal Pay Later if the customer qualifies. Defaults to `false`. Only available with PayPal Checkout.
     ///   - currencyCode: Optional: A three-character ISO-4217 ISO currency code to use for the transaction. Defaults to merchant currency code if not set.
     ///   See https://developer.paypal.com/docs/api/reference/currency-codes/ for a list of supported currency codes.
@@ -145,7 +164,7 @@ import BraintreeCore
     public init(
         amount: String,
         intent: BTPayPalRequestIntent = .authorize,
-        userAction: BTPayPalRequestUserAction = .none,
+        userAction: BTPayPalRequestUserAction = .unknown,
         offerPayLater: Bool = false,
         currencyCode: String? = nil,
         requestBillingAgreement: Bool = false,
@@ -189,7 +208,7 @@ import BraintreeCore
             checkoutParameters["currency_iso_code"] = currencyCode
         }
 
-        if userAction != .none, var experienceProfile = baseParameters["experience_profile"] as? [String: Any] {
+        if userAction == .payNow, var experienceProfile = baseParameters["experience_profile"] as? [String: Any] {
             experienceProfile["user_action"] = userAction.stringValue
             baseParameters["experience_profile"] = experienceProfile
         }
